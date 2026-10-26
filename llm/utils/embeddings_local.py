@@ -1,23 +1,30 @@
 # Import required libraries
-from sentence_transformers import SentenceTransformer
+from functools import lru_cache
 from sklearn.metrics.pairwise import cosine_similarity
-import torch
 import time
 import random
 import logging as log
 
-# Load a pre-trained model from Hugging Face (e.g., a BERT-based model)
+# Pre-trained model from Hugging Face (e.g., a BERT-based model)
 model_name = 'all-MiniLM-L6-v2'
-model = SentenceTransformer(model_name)
+
+@lru_cache(maxsize=None)
+def get_model():
+    # Loaded on first use instead of at import time, so importing this module
+    # (e.g. via opensbt) does not require torch or access to Hugging Face.
+    from sentence_transformers import SentenceTransformer
+    log.info(f"Loading embedding model '{model_name}'")
+    return SentenceTransformer(model_name)
 
 def is_equal(a, b, threshold = 0.9):
+    model = get_model()
     embedding1 = model.encode(a)
     embedding2 = model.encode(b)
     score = cosine_similarity([embedding1], [embedding2])[0][0]
     return score > threshold
 
 def get_embedding(text):
-    return model.encode(text)
+    return get_model().encode(text)
 
 def get_similarity(a,b, scale = None):
     reference_embedding = get_embedding(a).reshape(1, -1)  # Correct reshaping
@@ -28,6 +35,10 @@ def get_similarity(a,b, scale = None):
     return score
 
 if __name__ == "__main__":
+    import torch
+
+    model = get_model()
+
     # Example sentences to compare (simple variation for random generation)
     sample_sentences = [
         "Anti Apples.",
