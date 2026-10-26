@@ -143,11 +143,15 @@ class CustomUtteranceGenerator(UtteranceGenerator):
         fallback = {
             "INTENT_Climate": {
                 "explicit": ["turn on the AC", "set the temperature to 20 degrees", "start the fan", "turn on the heating"],
-                "implicit": ["it is too warm in here", "the cabin feels cold"],
+                "implicit": ["it is too warm in here", "the cabin feels cold",
+                             # mention navigation words, so the keyword SUT can misclassify them
+                             "it gets so stuffy on a long drive", "the windows fog up on this route"],
             },
             "INTENT_Navigation": {
                 "explicit": ["navigate to the station", "show directions to the airport", "find a route home", "open the map"],
-                "implicit": ["I need help getting somewhere", "help me reach my destination"],
+                "implicit": ["I need help getting somewhere", "help me reach my destination",
+                             # mention climate words, so the keyword SUT can misclassify them
+                             "take me somewhere warm, it is cold out", "I want to get out of this heat"],
             },
         }
         text = random.choice(fallback[content_input.intent][style.implicitness])
